@@ -1,16 +1,997 @@
-
 <!DOCTYPE html>
+<html lang="ro">
 <head>
-    <title>Introdicere in CSS</title>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="CSS/style.CSS/" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C.I.T. — Cultura Informațională & Tehnologia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Caveat:wght@600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============ BAZĂ ============ */
+:root{
+  --cyan:#00f3ff;
+  --mag:#ff0055;
+  --acid:#ffe600;
+  --bg:#0b0b14;
+  --bg2:#111120;
+  --ink:#eceae2;
+  --dim:#c9c7d4;
+  --line:#3d3d52;
+  --marker:'Permanent Marker', cursive;
+  --hand:'Caveat', cursive;
+  --mono:'Space Mono', monospace;
+  /* textură de spray (speckle) — mască peste pete de vopsea */
+  --speckle:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 0 0 0 0 0.4 0 0 0.8 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' seed='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--mono);font-size:15px;line-height:1.7;
+  overflow-x:hidden;cursor:crosshair;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:5;pointer-events:none;
+  background-image:var(--grain);opacity:.06;mix-blend-mode:overlay;
+}
+::selection{background:var(--acid);color:#000}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px dashed var(--acid);outline-offset:3px}
+a{color:var(--cyan)}
 
+.sk1{border:2px solid var(--ink);border-radius:255px 15px 225px 15px/15px 225px 15px 255px}
+.sk2{border:2px solid var(--ink);border-radius:15px 225px 15px 255px/255px 15px 225px 15px}
+.sk3{border:2px solid var(--ink);border-radius:125px 10px 20px 185px/25px 205px 205px 25px}
+
+/* ============ CANVAS SPRAY ============ */
+#sprayCanvas{position:fixed;inset:0;z-index:50;pointer-events:none}
+#clearSpray{
+  position:fixed;right:18px;bottom:18px;z-index:60;
+  background:var(--bg2);color:var(--dim);
+  font-family:var(--hand);font-size:1.15rem;font-weight:700;
+  padding:.45rem .9rem;display:flex;gap:.5rem;align-items:center;
+  transition:transform .15s,color .15s;
+}
+#clearSpray:hover{color:var(--mag);transform:rotate(-2deg) scale(1.05)}
+#clearSpray svg{width:20px;height:20px}
+
+/* ============ HEADER / NAV ============ */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:.7rem clamp(1rem,4vw,2.5rem);
+  background:rgba(11,11,20,.82);backdrop-filter:blur(8px);
+  border-bottom:1px dashed var(--line);
+}
+.logo{font-family:var(--marker);font-size:1.35rem;letter-spacing:.05em;display:flex;align-items:baseline;gap:.35rem}
+.logo i{font-style:normal}
+.logo .c1{color:var(--cyan)}.logo .c2{color:var(--mag)}.logo .c3{color:var(--acid)}
+.logo small{font-family:var(--mono);font-size:.6rem;color:var(--dim);letter-spacing:.2em}
+nav{display:flex;gap:.2rem;flex-wrap:wrap}
+nav button{
+  background:none;border:none;color:var(--dim);
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:.45rem .7rem;position:relative;transition:color .2s;
+}
+nav button:hover{color:var(--acid)}
+nav button.active{color:var(--ink);transform:rotate(-1.5deg)}
+nav button.active::after{
+  content:"";position:absolute;left:8%;right:8%;bottom:2px;height:5px;
+  background:var(--acid);
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:60px;mask-size:60px;transform:rotate(-1deg);
+}
+
+/* ============ PANOU / SECȚIUNI ============ */
+main{padding-top:64px}
+.panel{display:none;max-width:1080px;margin:0 auto;padding:clamp(2rem,5vw,4rem) clamp(1rem,4vw,2rem) 5rem}
+.panel.on{display:block;animation:slamIn .5s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes slamIn{
+  0%{opacity:0;transform:translateY(24px) rotate(.6deg) skewX(-2deg)}
+  60%{opacity:1;transform:translateY(-4px) rotate(-.3deg)}
+  100%{opacity:1;transform:none}
+}
+.rv{opacity:0;transform:translateY(26px) rotate(-.5deg);transition:opacity .6s,transform .6s}
+.rv.vis{opacity:1;transform:none}
+
+.sec-tag{font-size:.72rem;letter-spacing:.25em;color:var(--dim);text-transform:uppercase}
+.sec-tag b{color:var(--mag)}
+h2.title{
+  font-family:var(--marker);font-weight:400;
+  font-size:clamp(1.9rem,5vw,3.2rem);line-height:1.12;margin:.4rem 0 .2rem;
+}
+.squig{display:block;width:min(320px,70%);height:16px;margin-bottom:1.8rem}
+.squig path{stroke-dasharray:600;stroke-dashoffset:600}
+.panel.on .squig path{animation:draw 1s .25s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+h3.sub{font-family:var(--marker);font-weight:400;font-size:1.4rem;margin:2.8rem 0 1rem;display:flex;align-items:center;gap:.6rem}
+h3.sub svg{width:22px;height:22px;flex:none}
+.note-hand{font-family:var(--hand);font-size:1.25rem;color:var(--acid)}
+
+.splat{
+  position:absolute;pointer-events:none;z-index:0;
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:170px;mask-size:170px;
+  animation:breathe 7s ease-in-out infinite alternate;
+}
+@keyframes breathe{from{opacity:.55}to{opacity:.95}}
+.doodle{position:absolute;z-index:0;pointer-events:none;opacity:.85}
+
+/* ============ HERO ============ */
+#hero{
+  min-height:calc(100vh - 64px);position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(2rem,5vw,4rem) clamp(1rem,4vw,3rem);max-width:1080px;margin:0 auto;
+}
+.dossier{font-size:.7rem;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;margin-bottom:1.2rem}
+.dossier em{font-style:normal;color:var(--mag)}
+h1.mega{
+  font-family:var(--marker);font-weight:400;
+  font-size:clamp(2.2rem,9vw,5.6rem);line-height:1.05;z-index:1;text-transform:uppercase;
+}
+h1.mega span{display:inline-block;transform:rotate(-2deg)}
+h1.mega .lit{position:relative}
+h1.mega .lit::before{content:attr(data-l);position:absolute;left:3px;top:3px;z-index:-1;opacity:.6}
+.lc{color:var(--cyan)}.lm{color:var(--mag)}.la{color:var(--acid)}
+.lc::before{color:var(--mag)}.lm::before{color:var(--cyan)}.la::before{color:var(--mag)}
+/* fiecare cuvânt stă pe un singur rând, indiferent de ecran */
+h1.mega .row2{
+  display:block;white-space:nowrap;
+  margin-left:clamp(.5rem,6vw,4rem);
+  font-size:.55em;
+}
+h1.mega .row3{
+  display:block;white-space:nowrap;
+  margin-left:clamp(1.5rem,7vw,5rem);
+  font-size:.5em;color:var(--acid);
+  text-shadow:3px 3px 0 rgba(255,0,85,.8);
+  transform:rotate(-1deg);
+}
+.hero-sub{max-width:560px;color:var(--dim);margin:1.6rem 0 2rem;z-index:1}
+.hero-sub b{color:var(--ink)}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;z-index:1}
+.btn{
+  font-family:var(--marker);font-size:1.05rem;letter-spacing:.04em;
+  background:transparent;color:var(--ink);
+  padding:.7rem 1.6rem;transition:.18s;
+  display:inline-flex;align-items:center;gap:.6rem;
+}
+.btn svg{width:19px;height:19px}
+.btn:hover{transform:rotate(-1.5deg) translateY(-2px)}
+.btn.solid{background:var(--acid);color:#000;border-color:var(--acid)}
+.btn.solid:hover{background:var(--mag);border-color:var(--mag);color:#fff}
+.btn.ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.spray-hint{
+  margin-top:3rem;align-self:flex-start;z-index:1;
+  background:var(--acid);color:#000;padding:.5rem 1.1rem .6rem;
+  font-family:var(--hand);font-size:1.25rem;font-weight:700;line-height:1.3;
+  transform:rotate(-2deg);max-width:340px;box-shadow:4px 5px 0 rgba(0,0,0,.55);
+}
+
+/* bandă defilantă */
+.ticker{border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);overflow:hidden;white-space:nowrap;padding:.55rem 0;background:rgba(255,255,255,.02)}
+.ticker-in{display:inline-flex;align-items:center;gap:1.6rem;animation:tick 26s linear infinite;will-change:transform}
+.ticker-in span{font-family:var(--marker);font-size:1rem;letter-spacing:.12em;color:var(--dim)}
+.ticker-in svg{width:14px;height:14px;flex:none}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ============ PROZĂ & DOSARE ============ */
+.dossier-head{display:flex;align-items:baseline;gap:.9rem;margin:2.6rem 0 .9rem;flex-wrap:wrap}
+.dossier-num{
+  font-family:var(--marker);font-size:1.25rem;color:#000;
+  padding:.1rem .75rem;transform:rotate(-2deg);flex:none;
+  border-radius:50% 40% 55% 45%/45% 55% 40% 50%;
+  background:var(--acid);
+}
+.dossier-num.n-c{background:var(--cyan)}
+.dossier-num.n-m{background:var(--mag);color:#fff}
+.dossier-head h3{font-family:var(--marker);font-weight:400;font-size:clamp(1.25rem,3.4vw,1.8rem);line-height:1.2}
+.prose{max-width:72ch}
+.prose p{margin:.9rem 0;color:var(--dim);font-size:.92rem}
+.prose p b{color:var(--ink)}
+.prose p i{color:var(--ink)}
+.prose .lead{font-size:1.02rem;color:var(--ink)}
+.hl{padding:0 .25em;position:relative;white-space:nowrap}
+.hl::before{
+  content:"";position:absolute;inset:.05em -.15em -.05em -.15em;z-index:-1;transform:rotate(-1deg);
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:110px;mask-size:110px;
+}
+.hl.y{color:#000}.hl.y::before{background:var(--acid)}
+.hl.c{color:var(--cyan)}.hl.c::before{background:rgba(0,243,255,.35)}
+.hl.m{color:var(--mag)}.hl.m::before{background:rgba(255,0,85,.35)}
+
+/* competențe 1.1 */
+.comps{margin:1.2rem 0 0;border-left:2px dashed var(--line)}
+.comp{display:flex;gap:1rem;padding:1rem 0 1rem 1.3rem;border-bottom:1px dashed var(--line)}
+.comp:last-child{border-bottom:none}
+.comp-tag{font-family:var(--marker);flex:none;width:2.3rem;font-size:1.15rem;padding-top:.1rem}
+.comp h4{font-family:var(--marker);font-weight:400;font-size:1.05rem;margin-bottom:.2rem}
+.comp p{font-size:.85rem;color:var(--dim)}
+
+/* diagrama de simbioză 1.2 */
+.symio{display:grid;grid-template-columns:1fr auto 1fr;gap:1.1rem;align-items:stretch;margin:1.4rem 0}
+.symio-side{padding:1.2rem 1.3rem}
+.symio-side h5{font-family:var(--marker);font-weight:400;font-size:1.05rem;margin-bottom:.35rem;letter-spacing:.05em}
+.symio-side p{font-size:.82rem;color:var(--dim)}
+.symio-side.t{border-color:var(--cyan)}.symio-side.t h5{color:var(--cyan)}
+.symio-side.c{border-color:var(--mag)}.symio-side.c h5{color:var(--mag)}
+.symio-mid{display:grid;place-items:center;font-family:var(--hand);font-weight:700;font-size:2.4rem;color:var(--acid);transform:rotate(-8deg)}
+
+/* Notă de avertisment */
+.warnbox{
+  margin:2.4rem 0 1.8rem;padding:2.3rem 1.6rem 1.4rem;position:relative;
+  border:2px solid var(--mag);background:rgba(255,0,85,.05);
+  border-radius:15px 225px 15px 255px/255px 15px 225px 15px;
+  transform:rotate(-.4deg);
+}
+.warnbox::before{
+  content:"";position:absolute;top:9px;left:14px;right:14px;height:7px;
+  background:repeating-linear-gradient(-45deg,var(--mag) 0 9px,transparent 9px 18px);
+  opacity:.55;
+}
+.warn-tape{
+  position:absolute;top:-15px;left:16px;
+  background:var(--acid);color:#000;font-family:var(--marker);
+  font-size:.85rem;letter-spacing:.12em;padding:.28rem 1rem;transform:rotate(-3deg);
+  box-shadow:3px 3px 0 rgba(0,0,0,.55);
+}
+.warnbox p{font-size:.92rem;color:var(--dim);margin:0}
+.warnbox p b{color:var(--ink)}
+
+/* notițe înfipate */
+.pinwall{display:flex;flex-wrap:wrap;gap:1.4rem 1.2rem;margin-top:1.4rem;align-items:flex-start}
+.pin{width:min(230px,100%);padding:1.1rem 1rem 1.2rem;position:relative;background:var(--bg2);transition:transform .2s}
+.pin:hover{transform:rotate(0deg) translateY(-4px) !important;z-index:2}
+.pin::before{
+  content:"";position:absolute;top:-12px;left:50%;width:64px;height:22px;
+  transform:translateX(-50%) rotate(-4deg);
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:70px;mask-size:70px;opacity:.85;
+}
+.pin:nth-child(odd)::before{transform:translateX(-50%) rotate(3deg)}
+.pin h4{font-family:var(--marker);font-weight:400;font-size:1.05rem;margin-bottom:.4rem}
+.pin p{font-size:.78rem;color:var(--dim);line-height:1.6}
+.pin.p-c{border-color:var(--cyan)}.pin.p-c::before{background:var(--cyan)}.pin.p-c h4{color:var(--cyan)}
+.pin.p-m{border-color:var(--mag)}.pin.p-m::before{background:var(--mag)}.pin.p-m h4{color:var(--mag)}
+.pin.p-a{border-color:var(--acid)}.pin.p-a::before{background:var(--acid)}.pin.p-a h4{color:var(--acid)}
+
+/* ============ QUIZ ============ */
+.quiz-shell{margin-top:1.5rem;padding:1.6rem;position:relative;background:var(--bg2)}
+.scorebar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.score-badge{font-family:var(--marker);font-size:1.2rem;color:var(--acid);border:2px dashed var(--acid);padding:.3rem 1rem;transform:rotate(-2deg)}
+.q-item{margin:1.4rem 0;padding-left:2.4rem;position:relative}
+.q-num{
+  position:absolute;left:0;top:0;width:1.9rem;height:1.9rem;display:grid;place-items:center;
+  font-family:var(--marker);font-size:.95rem;color:var(--mag);
+  border:2px solid var(--mag);border-radius:60% 40% 55% 45%/45% 55% 40% 60%;
+}
+.q-item .qq{font-weight:700;margin-bottom:.6rem}
+.q-opt{
+  display:block;width:100%;text-align:left;margin:.4rem 0;
+  background:transparent;border:1.5px solid var(--line);border-radius:12px 4px 14px 5px;
+  color:var(--dim);font-family:var(--mono);font-size:.82rem;
+  padding:.5rem .9rem;transition:.15s;
+}
+.q-opt:hover:not(:disabled){border-color:var(--cyan);color:var(--ink);transform:translateX(4px)}
+.q-item.done .q-opt{cursor:default;opacity:.55}
+.q-item.done .q-opt.ok{opacity:1;border-color:var(--cyan);color:var(--cyan)}
+.q-item.done .q-opt.wrong{opacity:1;border-color:var(--mag);color:var(--mag)}
+.q-why{display:none;margin-top:.6rem;font-family:var(--hand);font-size:1.15rem;font-weight:600;color:var(--acid)}
+.q-item.done .q-why{display:block}
+.verdict{
+  display:none;margin-top:2rem;padding:1.2rem 1.6rem;
+  background:var(--acid);color:#000;transform:rotate(-1deg);
+  font-family:var(--marker);font-size:clamp(1.1rem,3vw,1.6rem);
+}
+.verdict small{display:block;font-family:var(--mono);font-size:.75rem;margin-top:.5rem;font-weight:400}
+.verdict.show{display:block;animation:slamIn .5s both}
+.verdict.v-good{background:var(--cyan)}
+.verdict.v-bad{background:var(--mag);color:#fff}
+
+/* ============ S2 — MANIFEST & DIMENSIUNI ============ */
+.manifest{position:relative;padding:clamp(1.5rem,4vw,3rem);margin:1.5rem 0;background:var(--bg2)}
+.manifest .m-line{
+  font-family:var(--marker);font-weight:400;text-transform:uppercase;
+  font-size:clamp(1.4rem,4.6vw,2.8rem);line-height:1.12;
+}
+.m-line em{font-style:normal;color:var(--mag)}
+.m-line u{text-decoration:none;position:relative}
+.m-line u::after{
+  content:"";position:absolute;left:-2%;right:-2%;bottom:4px;height:.35em;z-index:-1;transform:rotate(-1.2deg);
+  background:var(--cyan);
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:90px;mask-size:90px;
+}
+.dims{margin-top:.6rem}
+.dim{display:flex;gap:1.3rem;padding:1.5rem .6rem;border-bottom:1px dashed var(--line);transition:background .2s}
+.dim:hover{background:rgba(255,255,255,.025)}
+.dim-num{font-family:var(--marker);font-size:2.3rem;line-height:1;flex:none;width:3.2rem;transform:rotate(-4deg)}
+.dim:nth-child(even) .dim-num{transform:rotate(3deg)}
+.dim:nth-child(1) .dim-num{color:var(--cyan)}
+.dim:nth-child(2) .dim-num{color:var(--mag)}
+.dim:nth-child(3) .dim-num{color:var(--acid)}
+.dim:nth-child(4) .dim-num{color:var(--cyan)}
+.dim h4{font-family:var(--marker);font-weight:400;font-size:1.15rem;margin-bottom:.35rem}
+.dim p{font-size:.86rem;color:var(--dim)}
+.dim p b{color:var(--ink)}
+@media(max-width:600px){.dim{gap:.9rem}.dim-num{width:2.4rem;font-size:1.8rem}}
+
+/* comparație */
+.vs-head{display:flex;justify-content:space-between;gap:1rem;margin:2.6rem 0 1.4rem;flex-wrap:wrap}
+.vs-tag{font-family:var(--marker);font-size:1.1rem;padding:.35rem 1.2rem;background:var(--bg2)}
+.vs-tag.t1{color:var(--cyan);border-color:var(--cyan);transform:rotate(-2deg)}
+.vs-tag.t2{color:var(--mag);border-color:var(--mag);transform:rotate(2deg)}
+.vs-row{display:grid;grid-template-columns:1fr 130px 1fr;gap:.8rem;align-items:center;padding:1rem 0;border-bottom:1px dashed var(--line);transition:background .2s}
+.vs-row:hover{background:rgba(255,255,255,.025)}
+.vs-cell{font-size:.83rem;color:var(--dim)}
+.vs-cell b{display:block;color:var(--ink);margin-bottom:.15rem;font-size:.88rem}
+.vs-mid{font-family:var(--hand);font-weight:700;font-size:1.15rem;text-align:center;color:var(--acid);transform:rotate(-3deg)}
+.vs-verdict{margin-top:1.8rem;padding:1rem 1.5rem;font-family:var(--hand);font-weight:700;font-size:1.5rem;color:var(--cyan);transform:rotate(-1deg);text-align:center}
+
+/* ============ S3 — MIȘCĂRILE A–D ============ */
+.moves{margin-top:.8rem}
+.move{display:flex;gap:1.3rem;padding:1.5rem .4rem;border-bottom:1px dashed var(--line)}
+.move-tag{
+  flex:none;width:2.7rem;height:2.7rem;display:grid;place-items:center;
+  font-family:var(--marker);font-size:1.25rem;color:#000;background:var(--acid);
+  border-radius:55% 45% 60% 40%/45% 60% 40% 55%;transform:rotate(-5deg);
+}
+.move:nth-child(even) .move-tag{background:var(--cyan);transform:rotate(4deg)}
+.move h4{font-family:var(--marker);font-weight:400;font-size:1.12rem;margin-bottom:.4rem}
+.move p{font-size:.86rem;color:var(--dim);margin:.55rem 0 0}
+.move p b{color:var(--ink)}
+@media(max-width:600px){.move{flex-direction:column;gap:.5rem}}
+
+.pipeline{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:1rem}
+.pipe{font-family:var(--marker);font-size:.85rem;letter-spacing:.05em;padding:.45rem 1rem;background:var(--bg2);transition:.15s}
+.pipe:hover{transform:rotate(-2deg) scale(1.06);border-color:var(--acid);color:var(--acid)}
+
+/* generator de idei */
+.tool-shell{margin-top:1.2rem;padding:1.8rem;position:relative;background:var(--bg2)}
+.ticket{
+  border:2px dashed var(--line);padding:1.6rem 1.4rem;margin:1.2rem 0;min-height:120px;
+  display:flex;flex-direction:column;justify-content:center;gap:1rem;position:relative;
+  background:rgba(255,255,255,.02);
+}
+.ticket .idea{font-family:var(--hand);font-weight:700;font-size:clamp(1.35rem,3.2vw,1.8rem);line-height:1.35;color:var(--ink)}
+.idea-chips{display:flex;gap:.5rem;flex-wrap:wrap}
+.ichip{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;padding:.15rem .6rem;border:1px dashed}
+.ichip.c1{color:var(--cyan);border-color:var(--cyan)}
+.ichip.c2{color:var(--mag);border-color:var(--mag)}
+.ichip.c3{color:var(--acid);border-color:var(--acid)}
+.ichip.c4{color:var(--dim);border-color:var(--dim)}
+.tool-actions{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center}
+
+/* roadmap */
+.road{margin-top:1.2rem}
+.road-level{margin-bottom:2rem}
+.road-level>h4{
+  font-family:var(--marker);font-weight:400;font-size:1.15rem;margin-bottom:.4rem;
+  display:inline-block;padding:.2rem .9rem;transform:rotate(-1.2deg);
+}
+.road-level.lv1>h4{color:#000;background:var(--cyan)}
+.road-level.lv2>h4{color:#fff;background:var(--mag)}
+.road-level.lv3>h4{color:#000;background:var(--acid)}
+.road-item{display:flex;gap:.9rem;align-items:flex-start;padding:.55rem 0;cursor:pointer;user-select:none}
+.road-item .box{
+  flex:none;width:1.5rem;height:1.5rem;margin-top:.15rem;position:relative;
+  border:2px solid var(--line);border-radius:40% 60% 50% 50%/55% 45% 60% 40%;
+  transition:border-color .2s;
+}
+.road-item:hover .box{border-color:var(--acid)}
+.road-item .box svg{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);stroke-dasharray:60;stroke-dashoffset:60}
+.road-item.checked .box svg{animation:xin .3s ease forwards}
+@keyframes xin{to{stroke-dashoffset:0}}
+.road-item .txt{font-size:.88rem;color:var(--dim);position:relative;transition:color .3s}
+.road-item .txt::after{
+  content:"";position:absolute;left:-2px;right:100%;top:55%;height:3px;
+  background:var(--mag);transform:rotate(-1deg);
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:50px;mask-size:50px;
+  transition:right .35s ease;
+}
+.road-item.checked .txt{color:#6f6d80}
+.road-item.checked .txt::after{right:-4px}
+.road-progress{margin:1.6rem 0 .4rem}
+.road-progress .plabel{font-family:var(--marker);color:var(--acid);font-size:1.05rem;margin-bottom:.5rem}
+.pbar{height:14px;border:2px solid var(--line);border-radius:10px 3px 12px 4px;overflow:hidden}
+.pfill{
+  height:100%;width:0;background:var(--acid);transition:width .5s cubic-bezier(.2,1.2,.4,1);
+  -webkit-mask-image:var(--speckle);mask-image:var(--speckle);
+  -webkit-mask-size:100px;mask-size:100px;
+}
+
+footer{border-top:1px dashed var(--line);padding:2rem;text-align:center;color:var(--dim);font-size:.72rem;letter-spacing:.1em}
+footer .note-hand{display:block;font-size:1.2rem;margin-top:.4rem}
+
+#toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,80px);z-index:70;
+  background:var(--acid);color:#000;font-family:var(--marker);font-size:.95rem;
+  padding:.6rem 1.4rem;opacity:0;transition:.3s;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translate(-50%,0) rotate(-1deg)}
+
+@media (max-width:720px){
+  .vs-row{grid-template-columns:1fr;gap:.3rem;padding:1rem .4rem}
+  .vs-cell:last-child{border-left:2px dashed var(--mag);padding-left:.8rem}
+  .vs-cell:first-child{border-left:2px dashed var(--cyan);padding-left:.8rem}
+  .vs-mid{text-align:left;transform:none}
+  header{flex-direction:column;gap:.2rem}
+  main{padding-top:104px}
+  #hero{min-height:auto}
+  .symio{grid-template-columns:1fr}
+  .symio-mid{padding:.2rem 0}
+}
+</style>
 </head>
-<body topmargin="32" leftmargin="124">
-    <h2>Studiem CSS</h2>
-    <p>
-        Bine ați venit la noi !
-       </p>
+<body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.3 5 13.8l5.2-.6-2 8.5 9-12.4-5.3.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.6 6.1 6.6.5-5 4.4 1.5 6.5L12 16.6l-5.7 3.4 1.5-6.5-5-4.4 6.6-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-spray" viewBox="0 0 24 24"><path d="M9 8.5h6l.5 12h-7z M10 8.5V6h4v2.5 M9.5 4.2l.1.1 M12.5 3.2l.1.1 M15 4.8l.1.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 13.2c2 1.5 3.5 3.3 4.6 5C11 12 15.5 7 20.5 4.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5.5C9 9 14 14.5 19 19 M19 5C14.5 9.5 9.5 14 5 19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 8.6l.1.1 M15.5 8.6l.1.1 M12 12.2l.1.1 M8.5 15.6l.1.1 M15.5 15.6l.1.1" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 5c-3.5 0-6.5 0-9.5 0C5.5 5 5 5.6 5 6.6V17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3 12c5 0 9-.3 14-.3 M13.5 6.5C15.5 8.3 17 10 19.5 11.7c-2.5 1.6-4.5 3.4-6.2 5.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M8 14.5C5.8 13.2 5 11.4 5 9.5 5 6 8 3.5 12 3.5s7 2.5 7 6c0 1.9-.9 3.6-3 5-.7.5-1 1.5-1 2.5h-6c0-1-.3-2-1-2.5z M9.5 20.5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12C5 7.5 8.3 5.5 12 5.5s7 2 9.5 6.5C19 16.5 15.7 18.5 12 18.5S5 16.5 2.5 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-skull" viewBox="0 0 24 24"><path d="M12 3c-4.5 0-7.5 3-7.5 7 0 2.4 1 4 2.5 5v3.5h10V15c1.5-1 2.5-2.6 2.5-5 0-4-3-7-7.5-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="1.4" fill="currentColor"/><circle cx="15" cy="10.5" r="1.4" fill="currentColor"/><path d="M11 18.5v2 M13 18.5v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
 
+<canvas id="sprayCanvas"></canvas>
+<button id="clearSpray" class="sk2" title="Șterge vopseaua de pe ecran">
+  <svg><use href="#i-spray"/></svg> curăță peretele
+</button>
+
+<header>
+  <div class="logo"><i><span class="c1">C</span><span class="c2">.</span><span class="c3">I</span><span class="c2">.</span><span class="c1">T</span><span class="c2">.</span></i><small>DOSAR EDU</small></div>
+  <nav id="nav">
+    <button data-go="hero" class="active">Acasă</button>
+    <button data-go="cultura-info">01 · Fundamente</button>
+    <button data-go="rolul-artistului">02 · Artistul</button>
+    <button data-go="animator-roadmap">03 · Animatorul</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ======================= HERO ======================= -->
+<section id="hero" class="panel on">
+  <div class="splat" style="width:420px;height:420px;top:-8%;right:-6%;background:radial-gradient(closest-side,rgba(255,0,85,.5),transparent 70%)"></div>
+  <div class="splat" style="width:520px;height:520px;bottom:-12%;left:-10%;background:radial-gradient(closest-side,rgba(0,243,255,.4),transparent 70%);animation-delay:-3s"></div>
+  <div class="splat" style="width:260px;height:260px;top:34%;left:52%;background:radial-gradient(closest-side,rgba(255,230,0,.28),transparent 70%);animation-delay:-5s"></div>
+  <svg class="doodle" style="width:70px;top:16%;left:6%;transform:rotate(-14deg);color:var(--acid)"><use href="#i-bolt"/></svg>
+  <svg class="doodle" style="width:54px;top:64%;right:10%;transform:rotate(18deg);color:var(--mag)"><use href="#i-star"/></svg>
+  <svg class="doodle" style="width:44px;bottom:22%;left:14%;transform:rotate(8deg);color:var(--cyan)"><use href="#i-skull"/></svg>
+
+  <p class="dossier">Atelier Edu <em>//</em> dosar #0413 <em>//</em> materiile ascunse dintre pixeli</p>
+  <h1 class="mega">
+    <span class="lc lit" data-l="C">C</span><span class="lit" data-l="U">U</span><span class="lm lit" data-l="L">L</span><span class="lit" data-l="T">T</span><span class="la lit" data-l="U">U</span><span class="lit" data-l="R">R</span><span class="lc lit" data-l="A">A</span>
+    <span class="row2"><span class="lit" data-l="I">I</span><span class="lm lit" data-l="N">N</span><span class="lit" data-l="F">F</span><span class="la lit" data-l="O">O</span><span class="lit" data-l="R">R</span><span class="lm lit" data-l="M">M</span><span class="lc lit" data-l="A">A</span><span class="lit" data-l="Ț">Ț</span><span class="la lit" data-l="I">I</span><span class="lit" data-l="O">O</span><span class="lm lit" data-l="N">N</span><span class="lit" data-l="A">A</span><span class="lc lit" data-l="L">L</span><span class="lit" data-l="Ă">Ă</span></span>
+    <span class="row3">&amp; tehnologia</span>
+  </h1>
+  <p class="hero-sub">Notițe de pe peretele atelierului: ce înseamnă să <b>găsești, evaluezi și folosești informația</b> fără să te înțepenească — și cum te face asta un <b>artist și animator mai bun</b>.</p>
+  <div class="hero-cta">
+    <button class="btn solid sk1" data-go="cultura-info"><svg><use href="#i-bolt"/></svg>Începe cu fundamentul</button>
+    <button class="btn ghost sk2" data-go="animator-roadmap"><svg><use href="#i-star"/></svg>Sar direct la unelte</button>
+  </div>
+  <div class="spray-hint sk2">psst — ține apăsat butonul mouse-ului și trage prin ecran. peretele ăsta e al tău, sprayuiește liber.</div>
+</section>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-in" id="tickerIn">
+    <span>ÎNTREABĂ</span><svg style="color:var(--mag)"><use href="#i-star"/></svg>
+    <span>VERIFICĂ</span><svg style="color:var(--cyan)"><use href="#i-bolt"/></svg>
+    <span>CREEAZĂ</span><svg style="color:var(--acid)"><use href="#i-spray"/></svg>
+    <span>REPETĂ</span><svg style="color:var(--mag)"><use href="#i-star"/></svg>
+  </div>
+</div>
+
+<!-- ======================= S1: CULTURA INFORMAȚIONALĂ & TEHNOLOGIA ======================= -->
+<section id="cultura-info" class="panel">
+  <div class="splat" style="width:300px;height:300px;top:4%;right:-4%;background:radial-gradient(closest-side,rgba(0,243,255,.3),transparent 70%)"></div>
+  <p class="sec-tag">// <b>01</b> — fundamentul</p>
+  <h2 class="title">Ce este cultura informațională<span style="color:var(--mag)"> &amp; </span>tehnologia?</h2>
+  <svg class="squig" viewBox="0 0 320 16"><path d="M4 10 Q 40 2 80 9 T 160 8 T 240 10 T 316 7" fill="none" stroke="var(--acid)" stroke-width="3" stroke-linecap="round"/></svg>
+
+  <!-- 1.1 -->
+  <div class="dossier-head rv"><span class="dossier-num n-c">1.1</span><h3>Definiția culturii informaționale</h3></div>
+  <div class="prose rv">
+    <p class="lead">Cultura informațională reprezintă un ansamblu complex de <b>competențe cognitive, valori etice, atitudini și capacități analitice</b> prin care un individ reușește să identifice în mod autonom necesitatea de informație, să localizeze sursele relevante, să evalueze critic veridicitatea și calitatea datelor obținute și să le sintetizeze pentru a crea cunoaștere nouă.</p>
+    <p>Ea nu se reduce la simpla abilitate mecanică de a naviga pe internet, de a folosi rețelele sociale sau de a opera un motor de căutare; cultura informațională este o <span class="hl y">alfabetizare funcțională</span> de nivel superior, specifică erei digitale. Aceasta presupune:</p>
+  </div>
+  <div class="comps rv">
+    <div class="comp"><div class="comp-tag" style="color:var(--mag)">i.</div><div><h4>Gândire critică aplicată</h4><p>Capacitatea de a trece informația prin filtre logice, identificând dezinformarea, propaganda, erorile de raționament sau algoritmii de manipulare vizuală.</p></div></div>
+    <div class="comp"><div class="comp-tag" style="color:var(--cyan)">ii.</div><div><h4>Sinteză și contextualizare</h4><p>Abilitatea de a conecta concepte disparate din domenii diferite (artă, tehnologie, psihologie, sociologie) pentru a construi discursuri sau produse cu sens.</p></div></div>
+    <div class="comp"><div class="comp-tag" style="color:var(--acid)">iii.</div><div><h4>Etică și responsabilitate digitală</h4><p>Înțelegerea drepturilor de autor, a confidențialității datelor și a amprentei culturale pe care o lasă orice conținut distribuit în spațiul public.</p></div></div>
+  </div>
+
+  <!-- 1.2 -->
+  <div class="dossier-head rv"><span class="dossier-num n-m">1.2</span><h3>Definiția tehnologiei &amp; relația de simbioză</h3></div>
+  <div class="prose rv">
+    <p>Tehnologia constituie ansamblul de instrumente, sisteme, platforme hardware și arhitecturi software care <b>mediază, accelerează și extind capacitățile fizice și cognitive ale omului</b> în prelucrarea și transmiterea datelor.</p>
+    <p>Raportul dintre cele două este unul de <span class="hl c">simbioză structurală</span>:</p>
+  </div>
+  <div class="symio rv">
+    <div class="symio-side t sk1"><h5>TEHNOLOGIA</h5><p>oferă infrastructura fizică și algoritmică — canalele, software-ul, puterea de calcul.</p></div>
+    <div class="symio-mid">⇄</div>
+    <div class="symio-side c sk2"><h5>CULTURA INFORMAȚIONALĂ</h5><p>oferă cadrul intelectual, etic și creativ — materia cenușie care direcționează unealta.</p></div>
+  </div>
+  <div class="warnbox rv">
+    <div class="warn-tape">AVERTISMENT</div>
+    <p>Fără cultură informațională, tehnologia devine un factor de <b>alienare</b>, o sursă de zgomot digital necontrolat și o „închisoare" de algoritmi de recomandare. Alimentată de o cultură informațională maturizată, tehnologia se transformă într-un <b>amplificator al libertății creative</b> și al autonomiei individuale.</p>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--acid)"><use href="#i-bulb"/></svg> Concepte-cheie, înfipate pe perete</h3>
+  <div class="pinwall rv">
+    <div class="pin sk1 p-c" style="transform:rotate(-2.5deg)"><h4>Informația ≠ cunoașterea</h4><p>Datele sunt peste tot; cunoașterea apare doar când le filtrezi, le pui în context și le conectezi la ce știi deja.</p></div>
+    <div class="pin sk2 p-m" style="transform:rotate(1.8deg);margin-top:1.6rem"><h4>Sursa, mereu sursa</h4><p>Cine spune asta? De unde știe? Ce câștigă? Trei întrebări care elimină 90% din zgomot înainte de micul dejun.</p></div>
+    <div class="pin sk3 p-a" style="transform:rotate(-1.2deg)"><h4>Bias-ul: filtrul invizibil</h4><p>Atât al tău (confirmarea), cât și al algoritmului (engagement-ul). Recunoașterea lor e superputerea digitală.</p></div>
+    <div class="pin sk1 p-c" style="transform:rotate(2.4deg);margin-top:1.2rem"><h4>Bucla de recomandare</h4><p>Platforma învață din clickurile tale, apoi îți servește mai mult din ce ai clickuit. Conștientizarea buclei = libertatea de a o rupe.</p></div>
+    <div class="pin sk2 p-m" style="transform:rotate(-2deg)"><h4>Etică &amp; drept de autor</h4><p>A refolosi munca altcuiva fără atribuire nu e „inspirație" — e furt cu pași de găină. Licențele există dintr-un motiv.</p></div>
+    <div class="pin sk3 p-a" style="transform:rotate(1.5deg);margin-top:1.4rem"><h4>Empatie digitală</h4><p>Ce publici rămâne. Tonul, contextul și acordul oamenilor din materialele tale contează mai mult decât likes.</p></div>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--mag)"><use href="#i-eye"/></svg> Quiz rapid: ești alfabetizat digital?</h3>
+  <p class="rv" style="color:var(--dim);font-size:.85rem">Șase situații reale. Fără presiune — scorul apare live, verdictul la final. <span class="note-hand">Fără trișat, detectivul știe.</span></p>
+  <div class="quiz-shell sk2 rv">
+    <div class="scorebar">
+      <div class="score-badge">SCOR: <span id="qScore">0</span>/6</div>
+      <button class="btn ghost sk1" id="qReset" style="font-size:.85rem;padding:.4rem 1rem"><svg><use href="#i-x"/></svg>Reia quiz-ul</button>
+    </div>
+    <div id="quizList"></div>
+    <div class="verdict sk1" id="qVerdict"></div>
+  </div>
+</section>
+
+<!-- ======================= S2: ROLUL ARTISTULUI ======================= -->
+<section id="rolul-artistului" class="panel">
+  <div class="splat" style="width:360px;height:360px;top:2%;left:-6%;background:radial-gradient(closest-side,rgba(255,230,0,.22),transparent 70%)"></div>
+  <svg class="doodle" style="width:60px;top:8%;right:8%;transform:rotate(12deg);color:var(--acid)"><use href="#i-bolt"/></svg>
+  <p class="sec-tag">// <b>02</b> — lentila creativă</p>
+  <h2 class="title">Rolul artistului prin lentila culturii informaționale</h2>
+  <svg class="squig" viewBox="0 0 320 16"><path d="M4 8 Q 40 14 80 7 T 160 10 T 240 6 T 316 11" fill="none" stroke="var(--mag)" stroke-width="3" stroke-linecap="round"/></svg>
+
+  <div class="manifest sk1 rv">
+    <p class="m-line">De la meșteșugar al formei</p>
+    <p class="m-line">la <u>curator</u>, filtru critic &amp; <em>traducător vizual</em>.</p>
+  </div>
+
+  <div class="prose rv">
+    <p>Privit prin prisma culturii informaționale, rolul artistului contemporan suferă o <b>mutație fundamentală</b>: artistul își depășește condiția istorică de simplu meșteșugar al formei (executant tehnic) sau de geniu izolat și devine un <span class="hl m">curator cultural</span>, un filtru critic și un <span class="hl c">traducător vizual</span> al complexității informaționale.</p>
+    <p>Într-o lume suprasaturată de imagini generate automat, de filtre omogene și de un flux infinit de conținut digital de unică folosință, valoarea adăugată a artistului nu mai constă doar în abilitatea de a trasa o linie corectă, ci în capacitatea sa de <b>selecție, contextualizare și atribuire de sens</b>.</p>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--acid)"><use href="#i-star"/></svg> Dimensiunile cheie ale artistului modern</h3>
+  <div class="dims rv">
+    <div class="dim">
+      <div class="dim-num">01</div>
+      <div><h4>Artistul ca filtru anti-zgomot</h4><p>Societatea informațională suferă de o supraabundență de date (<b>infobezitate</b>). Artistul extrage din haosul informațional esențialul, emoția și profunzimea, transformând datele reci în povești vizuale care provoacă empatie și reflecție.</p></div>
+    </div>
+    <div class="dim">
+      <div class="dim-num">02</div>
+      <div><h4>Chestionarea și „hacking-ul" tehnologiei</h4><p>Un artist dotat cu o cultură informațională solidă nu folosește software-ul așa cum a fost preprogramat de corporații. Îi testează limitele, combină unelte incompatibile (randare 3D + pictură digitală 2D + graffiti) și <b>forțează software-ul să genereze noi estetici</b> — exact cum s-a întâmplat în producții precum <i>Arcane</i> sau <i>Spider-Man: Into the Spider-Verse</i>.</p></div>
+    </div>
+    <div class="dim">
+      <div class="dim-num">03</div>
+      <div><h4>Punte între știință, date și umanism</h4><p>Artistul transpune concepte tehnologice complexe (inteligență artificială, virtualizare, supraveghere digitală) într-un limbaj vizual accesibil tuturor, forțând societatea să își analizeze propria relație cu tehnologia.</p></div>
+    </div>
+    <div class="dim">
+      <div class="dim-num">04</div>
+      <div><h4>Subversiune și identitate vizuală</h4><p>Artistul folosește resturile, codul, erorile (<b>glitch art</b>) și fragmentele informaționale ale societății tehnologizate pentru a reasambla manifestări vizuale pline de energie, rebeliune și autenticitate.</p></div>
+    </div>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--cyan)"><use href="#i-eye"/></svg> Artă tradițională vs. artă digitală / AI</h3>
+  <p class="rv" style="color:var(--dim);font-size:.85rem">Aceeași întrebare, suporturi diferite. Treci cu mouse-ul peste rânduri.</p>
+  <div class="vs-head rv">
+    <div class="vs-tag sk1 t1">TRADIȚIONAL</div>
+    <div class="vs-tag sk2 t2">DIGITAL / AI</div>
+  </div>
+  <div class="rv">
+    <div class="vs-row"><div class="vs-cell"><b>Suportul</b>pânză, ipsos, hârtie — materia te opune și te modelează</div><div class="vs-mid">~ vs ~</div><div class="vs-cell"><b>pixeli, vectori, „spațiu latent"</b> — materia e maleabilă, dar limitarea s-a mutat în minte</div></div>
+    <div class="vs-row"><div class="vs-cell"><b>Timpul</b>luni de lucru pentru o operă; fiecare eroare costă zile</div><div class="vs-mid">vs.</div><div class="vs-cell"><b>minute + iterații</b> — eroarea e ieftină, deci alegerile trebuie să fie conștiente, nu accidentale</div></div>
+    <div class="vs-row"><div class="vs-cell"><b>Eroarea</b>vizibilă și definitivă — pensulața greșită trăiește în strat</div><div class="vs-mid">~ vs ~</div><div class="vs-cell"><b>regenerabilă la infinit</b> — tentantă, dar poate ucide intenția prin „încă o regenerare"</div></div>
+    <div class="vs-row"><div class="vs-cell"><b>Autoritatea</b>semnătura unică, originalul fizic, proveniența clară</div><div class="vs-mid">vs.</div><div class="vs-cell"><b>licența și transparența</b> — spui cum ai lucrat, ce ai folosit, cui îi aparține ce</div></div>
+    <div class="vs-row"><div class="vs-cell"><b>Costul de intrare</b>materiale scumpe, atelier, ani de ucenicie</div><div class="vs-mid">~ vs ~</div><div class="vs-cell"><b>curba de învățare + electricitate</b> — bariera e mai mică, dar cerința de <i>gust</i> e mai mare</div></div>
+  </div>
+  <div class="vs-verdict rv">— ambele cer gust. doar suportul s-a schimbat. —</div>
+</section>
+
+<!-- ======================= S3: ANIMATORUL ======================= -->
+<section id="animator-roadmap" class="panel">
+  <div class="splat" style="width:380px;height:380px;top:6%;right:-8%;background:radial-gradient(closest-side,rgba(255,0,85,.3),transparent 70%)"></div>
+  <svg class="doodle" style="width:52px;top:4%;left:2%;transform:rotate(-10deg);color:var(--cyan)"><use href="#i-star"/></svg>
+  <p class="sec-tag">// <b>03</b> — aplicația practică</p>
+  <h2 class="title">Cum te ajută C.I.T. să devii un animator mai bun</h2>
+  <svg class="squig" viewBox="0 0 320 16"><path d="M4 9 Q 40 3 80 10 T 160 7 T 240 11 T 316 8" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-linecap="round"/></svg>
+
+  <div class="prose rv">
+    <p class="lead">Animația este, prin excelență, o <b>artă hibridă</b> aflată la intersecția dintre matematică, fizică, psihologie și arte plastice. Pentru un individ care dorește să evolueze în acest domeniu, tehnologia nu trebuie să fie o „scurtătură" care înlocuiește munca, ci un <b>amplificator al înțelegerii biologice și fizice a mișcării</b>.</p>
+    <p class="note-hand" style="font-size:1.4rem;margin-top:1.2rem">→ cultura informațională îi oferă animatorului metodologia exactă pentru a studia și stăpâni realitatea mai rapid.</p>
+  </div>
+
+  <div class="moves rv">
+    <div class="move"><div class="move-tag">A</div><div>
+      <h4>Analiza riguroasă și descompunerea biomecanică a mișcării</h4>
+      <p><b>Software de analiză video:</b> în loc să animeze „din memorie", animatorul folosește instrumente precum SyncSketch, Kinovea sau motoare de urmărire a mișcării pentru a analiza cadru cu cadru accelerația, frânarea, inerția și arcele de mișcare ale corpului uman sau ale obiectelor.</p>
+      <p><b>Timing &amp; Spacing:</b> prin reprezentările grafice ale editoarelor de curbe (Graph Editor în Blender / Maya), senzația fizică de greutate și energie se transpune în funcții matematice precise.</p>
+    </div></div>
+    <div class="move"><div class="move-tag">B</div><div>
+      <h4>Optimizarea pipeline-ului și iterarea rapidă</h4>
+      <p><b>Scurtarea timpului de producție:</b> înțelegerea arhitecturii software-ului îi permite animatorului să își creeze propriile scripturi (ex. în Python), să utilizeze rigg-uri modulare și motoare de randare în timp real (Unreal Engine, Eevee).</p>
+      <p><b>Focalizarea pe acting:</b> economisind timp la procesele tehnice repetitive, animatorul își poate dedica 80% din timp rafinării expresiilor faciale, intențiilor psihologice și micilor detalii care dau <b>viață și suflet personajului</b>.</p>
+    </div></div>
+    <div class="move"><div class="move-tag">C</div><div>
+      <h4>Curatarea și gestionarea resurselor de referință (Ref-Boarding)</h4>
+      <p><b>Biblioteca cognitivă:</b> prin platforme de organizare a informației (PureRef, Notion), animatorul aplică principiile culturii informaționale pentru a-și structura referințele — de la anatomie și fizica mișcării, până la iluminat cinematic și stiluri istorice de artă.</p>
+    </div></div>
+    <div class="move"><div class="move-tag">D</div><div>
+      <h4>Colaborare asincronă și feedback global</h4>
+      <p>Tehnologia conectează animatorul cu comunități globale de profesioniști. Cultura informațională îl învață cum să primească și să ofere <b>critică constructivă</b> pe platforme digitale, folosind unelte de adnotare vizuală direct pe cadrele animate (screen-draw).</p>
+    </div></div>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--mag)"><use href="#i-arrow"/></svg> Un workflow care nu te omoară</h3>
+  <p class="rv" style="color:var(--dim);font-size:.85rem">De la impuls la export — fiecare etapă are un scop clar și o ieșire concretă.</p>
+  <div class="pipeline rv">
+    <span class="pipe sk1">IDEA</span><svg style="width:24px;height:24px;color:var(--dim)"><use href="#i-arrow"/></svg>
+    <span class="pipe sk2">RESEARCH</span><svg style="width:24px;height:24px;color:var(--dim)"><use href="#i-arrow"/></svg>
+    <span class="pipe sk3">THUMBNAILS</span><svg style="width:24px;height:24px;color:var(--dim)"><use href="#i-arrow"/></svg>
+    <span class="pipe sk1">ANIMATIC</span><svg style="width:24px;height:24px;color:var(--dim)"><use href="#i-arrow"/></svg>
+    <span class="pipe sk2">BLOCKING</span><svg style="width:24px;height:24px;color:var(--dim)"><use href="#i-arrow"/></svg>
+    <span class="pipe sk3">POLISH</span><svg style="width:24px;height:24px;color:var(--dim)"><use href="#i-arrow"/></svg>
+    <span class="pipe sk1" style="border-color:var(--acid);color:var(--acid)">EXPORT</span>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--acid)"><use href="#i-dice"/></svg> Generator de idei &amp; prompturi de animație</h3>
+  <p class="rv" style="color:var(--dim);font-size:.85rem">Blocat creativ? Dă cu zarul — primești un prompt de antrenament asamblat haotic, exact cum trebuie.</p>
+  <div class="tool-shell sk1 rv">
+    <div class="ticket sk2">
+      <div class="idea" id="ideaText">Zarul nu e aruncat încă. Apasă butonul și lasă haosul să compune…</div>
+      <div class="idea-chips" id="ideaChips"></div>
+    </div>
+    <div class="tool-actions">
+      <button class="btn solid sk1" id="ideaBtn"><svg><use href="#i-dice"/></svg>Dă cu zarul</button>
+      <button class="btn ghost sk2" id="copyBtn"><svg><use href="#i-copy"/></svg>Copiază promptul</button>
+    </div>
+  </div>
+
+  <h3 class="sub rv"><svg style="color:var(--cyan)"><use href="#i-check"/></svg> Roadmap-ul animatorului modern</h3>
+  <p class="rv" style="color:var(--dim);font-size:.85rem">Bifează ce ai stăpânit — progresul rămâne salvat în browserul tău. <span class="note-hand">Fără scuze acum.</span></p>
+  <div class="road-progress rv">
+    <div class="plabel"><span id="pDone">0</span>/<span id="pTotal">12</span> bifate — <span id="pPct">0%</span></div>
+    <div class="pbar"><div class="pfill" id="pFill"></div></div>
+  </div>
+  <div class="road rv" id="roadList"></div>
+</section>
+
+</main>
+
+<footer>
+  C.I.T. — proiect educațional despre cultura informațională &amp; tehnologie · totul rulează local, în browserul tău
+  <span class="note-hand">făcut cu spray, cafea și prea multe tab-uri deschise</span>
+</footer>
+
+<div id="toast" class="sk1"></div>
+
+<script>
+/* ================================================================
+   TOAST
+================================================================ */
+const toast = (() => {
+  const el = document.getElementById('toast');
+  let t;
+  return msg => {
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(t);
+    t = setTimeout(() => el.classList.remove('show'), 2200);
+  };
+})();
+
+/* ================================================================
+   NAVIGARE — SPA pe tab-uri
+================================================================ */
+const panels = ['hero', 'cultura-info', 'rolul-artistului', 'animator-roadmap'];
+document.querySelectorAll('[data-go]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.go;
+    panels.forEach(p => document.getElementById(p).classList.toggle('on', p === id));
+    document.querySelectorAll('#nav button').forEach(b =>
+      b.classList.toggle('active', b.dataset.go === id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById(id).querySelectorAll('.rv').forEach(el => {
+      el.classList.remove('vis');
+      requestAnimationFrame(() => requestAnimationFrame(() => obs.observe(el)));
+    });
+  });
+});
+
+/* apariție la scroll */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } });
+}, { threshold: .12 });
+document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+/* bandă defilantă */
+const tick = document.getElementById('tickerIn');
+tick.innerHTML += tick.innerHTML;
+
+/* ================================================================
+   QUIZ
+================================================================ */
+const QUIZ = [
+  { q: "Un coleg îți trimite: „ULTRA-REDUCERE 90%! Apasă ACUM, expiră în 5 minute!”. Ce faci?",
+    o: [
+      { t: "Apăs rapid, nu vreau să pierd oferta", ok: false },
+      { t: "Verific expeditorul și linkul, caut oferta pe site-ul oficial", ok: true },
+      { t: "Trimit mai departe în grup, de ce nu", ok: false }
+    ],
+    why: "Urgența artificială e primul semn de înșelătorie. Verificarea sursei înainte de click e reflexul de bază." },
+  { q: "Ce înseamnă, pe scurt, „cultura informațională”?",
+    o: [
+      { t: "Să știi cât mai multe informații pe dinafară", ok: false },
+      { t: "Să găsești, evaluezi și folosești informația conștient și etic", ok: true },
+      { t: "Să eviți complet internetul", ok: false }
+    ],
+    why: "Nu e despre cantitate, ci despre proces: căutare → evaluare → utilizare responsabilă." },
+  { q: "O imagine spectaculoasă generată cu AI apare într-un articol fără nicio mențiune. Ce verifici?",
+    o: [
+      { t: "Cine a publicat-o, în ce context și dacă e marcată onest ca generată", ok: true },
+      { t: "Nimic — dacă arată bine, e ok", ok: false },
+      { t: "Doar câte like-uri are", ok: false }
+    ],
+    why: "Transparența asupra provenienței e parte din etica informațională: contextul schimbă sensul imaginii." },
+  { q: "Licența „CC-BY” de pe o lucrare îți spune că…",
+    o: [
+      { t: "Poți folosi creația doar plătind autorul", ok: false },
+      { t: "Poți refolosi creația, dar trebuie să menționezi autorul", ok: true },
+      { t: "Nimeni nu poate folosi creația vreodată", ok: false }
+    ],
+    why: "CC-BY = atribuire obligatorie. Cunoașterea licențelor îți deschide materiale legitime de studiu și remix." },
+  { q: "De ce încrucișezi mai multe surse înainte să crezi o știre?",
+    o: [
+      { t: "Ca să-ți umpli timpul", ok: false },
+      { t: "Pentru că fiecare sursă are un unghi — verificarea îți dă imaginea completă", ok: true },
+      { t: "Nu e nevoie, primul rezultat din căutare e mereu corect", ok: false }
+    ],
+    why: "Fiecare sursă filtrează realitatea prin propriul bias. Triangularea e singura ta apărare." },
+  { q: "Feed-ul tău ți-a „decis” că adoră un singur tip de conținut. Ce faci ca animator?",
+    o: [
+      { t: "Îl las pe algoritm să aleagă, el știe mai bine", ok: false },
+      { t: "Îmi curăț conștient feed-ul: urmăresc divergenți, caut în afara buclei", ok: true },
+      { t: "Renunț la internet", ok: false }
+    ],
+    why: "Bucla de recomandare îngustează gustul vizual. Curatoriatul conștient îți păstrează varietatea de referințe." }
+];
+
+const quizList = document.getElementById('quizList');
+const qScoreEl = document.getElementById('qScore');
+const qVerdict = document.getElementById('qVerdict');
+let qAnswered = 0, qScore = 0;
+
+function buildQuiz() {
+  qAnswered = 0; qScore = 0;
+  qScoreEl.textContent = '0';
+  qVerdict.className = 'verdict';
+  quizList.innerHTML = '';
+  QUIZ.forEach((item, qi) => {
+    const div = document.createElement('div');
+    div.className = 'q-item';
+    div.innerHTML = `<div class="q-num">${qi + 1}</div><div class="qq">${item.q}</div>`;
+    const opts = [...item.o].sort(() => Math.random() - .5);
+    opts.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'q-opt';
+      b.textContent = opt.t;
+      b.addEventListener('click', () => {
+        if (div.classList.contains('done')) return;
+        div.classList.add('done');
+        if (opt.ok) { qScore++; b.classList.add('ok'); }
+        else {
+          b.classList.add('wrong');
+          [...div.querySelectorAll('.q-opt')].forEach(x => {
+            if (x.textContent === item.o.find(o => o.ok).t) x.classList.add('ok');
+          });
+        }
+        const why = document.createElement('div');
+        why.className = 'q-why';
+        why.textContent = '→ ' + item.why;
+        div.appendChild(why);
+        qAnswered++; qScoreEl.textContent = qScore;
+        if (qAnswered === QUIZ.length) showVerdict();
+      });
+      div.appendChild(b);
+    });
+    quizList.appendChild(div);
+  });
+}
+function showVerdict() {
+  let txt, cls, sub;
+  if (qScore >= 5)      { txt = 'VERDICT: MĂSLUIT CURAT.';        cls = 'v-good'; sub = 'Zgomotul de pe internet se teme de tine. Păstrează-ți scepticismul ascuțit.'; }
+  else if (qScore >= 3) { txt = 'VERDICT: PE CALEA CEA BUNĂ.';    cls = '';       sub = 'Ai instinctul, dar mai trișează graba. Verifică înainte de click, mereu.'; }
+  else                  { txt = 'VERDICT: PRINS DE ALGORITM.';    cls = 'v-bad';  sub = 'Nicio tragedie — exact pentru asta există dosarul ăsta. Citește secțiunea 01 încă o dată și reia quiz-ul.'; }
+  qVerdict.className = 'verdict sk1 show ' + cls;
+  qVerdict.innerHTML = txt + `<small>${sub} · Scor final: ${qScore}/6</small>`;
+}
+document.getElementById('qReset').addEventListener('click', () => { buildQuiz(); toast('Quiz-ul a fost resetat.'); });
+buildQuiz();
+
+/* ================================================================
+   GENERATOR DE IDEI / PROMPTURI
+================================================================ */
+const SUBIECTE = ["o vulpe mecanică", "un oraș plutitor făcut din hârtie", "o păpușă cu fire de neon", "un far singuratic", "o mașină de scris posedată", "un balaur din fum de țigară", "o stea de circ obosită", "un robot-curier pe o motocicletă veche", "o meduză din sticlă colorată", "un paznic de muzeu adormit"];
+const ACTIUNI = ["care se destramă în particule de lumină", "care dansează pe un ritm de 3/4", "care fuge de propria umbră", "care se reasamblează invers, filmată în play-back", "care respiră sincron cu muzica", "care se luptă cu gravitația", "care crește necontrolat în fiecare cadru", "care își schimbă culoarea cu fiecare pas"];
+const STILURI = ["stop-motion cu plastilină", "line art 2D cu tușe groase", "pixel art pe 16 nuanțe", "cel-shaded ca anime-ul anilor '90", "acuarelă animată cu margini pe apă", "colaj din hârtie tăiată", "siluete pe fundal de neon", "desen pe folie de calc, cu rigurozitate de sketchbook"];
+const TWISTURI = ["doar 2 culori, maximum", "un singur cadru unic, fără tăieturi", "maximum 6 secunde", "fără personaje — doar mediul", "camera niciodată statică", "fără sunet: totul comunică vizual", "mișcare doar la frame-uri impare", "totul văzut prin reflexie"];
+
+const ideaText = document.getElementById('ideaText');
+const ideaChips = document.getElementById('ideaChips');
+let lastIdea = '', spinning = false;
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function composeIdea() {
+  let s, a, st, tw, combo;
+  do {
+    s = pick(SUBIECTE); a = pick(ACTIUNI); st = pick(STILURI); tw = pick(TWISTURI);
+    combo = s + a + st + tw;
+  } while (combo === lastIdea);
+  lastIdea = combo;
+  return { s, a, st, tw };
+}
+function renderIdea({ s, a, st, tw }) {
+  ideaText.innerHTML = `O <span style="color:var(--cyan)">${s}</span> ${a}, în stil <span style="color:var(--mag)">${st}</span>.<br><span style="font-size:.75em;color:var(--acid)">Constrângere: ${tw}.</span>`;
+  ideaChips.innerHTML = `<span class="ichip c1">${s}</span><span class="ichip c2">${a}</span><span class="ichip c3">${st}</span><span class="ichip c4">${tw}</span>`;
+}
+document.getElementById('ideaBtn').addEventListener('click', () => {
+  if (spinning) return;
+  spinning = true;
+  const final = composeIdea();
+  let ticks = 0;
+  const iv = setInterval(() => {
+    ticks++;
+    if (ticks >= 7) {
+      clearInterval(iv);
+      renderIdea(final);
+      spinning = false;
+      ideaText.style.animation = 'slamIn .4s both';
+      setTimeout(() => ideaText.style.animation = '', 450);
+    } else {
+      renderIdea(composeIdea());
+    }
+  }, 70);
+});
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const plain = ideaText.textContent.replace(/\s+/g, ' ').trim();
+  navigator.clipboard.writeText(plain)
+    .then(() => toast('Prompt copiat. La treabă!'))
+    .catch(() => toast('Copierea a eșuat — selectează textul manual.'));
+});
+
+/* ================================================================
+   ROADMAP — checklist cu progres + localStorage
+================================================================ */
+const ROAD = [
+  { lv: 'lv1', name: 'NIVEL 1 · FUNDAMENTELE', items: [
+    'Desenez în fiecare zi, chiar și 10 minute — regula e continuitatea, nu volumul',
+    'Învaț cele 12 principii ale animației pe bune, cu câte un exemplu desenat pentru fiecare',
+    'Studiez mișcarea din referințe filmate, cadru cu cadru (frame-by-frame)',
+    'Baze de desen: gest + perspectivă — fundația oricărui plan credibil'
+  ]},
+  { lv: 'lv2', name: 'NIVEL 2 · ARSENAL DIGITAL', items: [
+    'Unelte 2D: Krita (gratuit) sau After Effects — unul stăpânit, nu cinci aproape',
+    'Prima incursiune în 3D: Blender — blocking simplu al unei scene',
+    'Testez AI-ul ca asistent: storyboard, moodboard, referințe — nu ca înlocuitor al mâinii',
+    'Ordine în haos: denumiri de fișiere, versiuni, backup automat'
+  ]},
+  { lv: 'lv3', name: 'NIVEL 3 · VOCE PROPRIE', items: [
+    'Portfolio cu bucăți SCURTE și terminate — 3 loop-uri reușite bat un film abandonat',
+    'Public, strâng feedback conștient și separ criticile utile de zgomot',
+    'Citesc licențe: știu ce pot folosi, cum și cu ce atribuire',
+    'Îmi definesc 3 teme recurente — semnătura mea vizuală'
+  ]}
+];
+const roadList = document.getElementById('roadList');
+const STORE_KEY = 'cit-roadmap-v1';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { state = {}; }
+
+ROAD.forEach(level => {
+  const wrap = document.createElement('div');
+  wrap.className = 'road-level ' + level.lv;
+  wrap.innerHTML = `<h4 class="sk1">${level.name}</h4>`;
+  level.items.forEach(item => {
+    const id = 'r-' + [...level.name + item].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 99991, 7);
+    const row = document.createElement('div');
+    row.className = 'road-item' + (state[id] ? ' checked' : '');
+    row.innerHTML = `<div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="var(--mag)" stroke-width="2.6" stroke-linecap="round"><use href="#i-x"/></svg></div><div class="txt">${item}</div>`;
+    row.addEventListener('click', () => {
+      row.classList.toggle('checked');
+      state[id] = row.classList.contains('checked');
+      if (!state[id]) delete state[id];
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+      updateProgress();
+    });
+    wrap.appendChild(row);
+  });
+  roadList.appendChild(wrap);
+});
+function updateProgress() {
+  const total = ROAD.reduce((n, l) => n + l.items.length, 0);
+  const done = document.querySelectorAll('.road-item.checked').length;
+  document.getElementById('pDone').textContent = done;
+  document.getElementById('pTotal').textContent = total;
+  document.getElementById('pPct').textContent = Math.round(done / total * 100) + '%';
+  document.getElementById('pFill').style.width = (done / total * 100) + '%';
+  if (done === total) toast('Roadmap complet. Acum du-te și animează!');
+}
+updateProgress();
+
+/* ================================================================
+   SPRAY PE ECRAN
+================================================================ */
+const cv = document.getElementById('sprayCanvas');
+const cx = cv.getContext('2d');
+const COLORS = ['#00f3ff', '#ff0055', '#ffe600'];
+let spraying = false, colorIdx = 0, lastX = 0, lastY = 0, hueSwitch = 0;
+
+function sizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = innerWidth * dpr;
+  cv.height = innerHeight * dpr;
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+sizeCanvas();
+addEventListener('resize', sizeCanvas);
+
+function sprayAt(x, y) {
+  if (++hueSwitch > 26) { hueSwitch = 0; colorIdx = (colorIdx + 1) % COLORS.length; }
+  cx.fillStyle = COLORS[colorIdx];
+  const radius = 14 + Math.random() * 14;
+  for (let i = 0; i < 22; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const dist = Math.pow(Math.random(), .7) * radius;
+    cx.globalAlpha = 0.05 + Math.random() * 0.06;
+    cx.beginPath();
+    cx.arc(x + Math.cos(ang) * dist, y + Math.sin(ang) * dist, .6 + Math.random() * 1.8, 0, 7);
+    cx.fill();
+  }
+  cx.globalAlpha = 1;
+}
+addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch' || e.button !== 0) return;
+  if (e.target.closest('button, a')) return;
+  spraying = true;
+  lastX = e.clientX; lastY = e.clientY;
+  sprayAt(lastX, lastY);
+});
+addEventListener('pointermove', e => {
+  if (!spraying || e.pointerType === 'touch') return;
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  const dist = Math.hypot(dx, dy);
+  const steps = Math.max(1, Math.floor(dist / 6));
+  for (let i = 1; i <= steps; i++) {
+    sprayAt(lastX + dx * i / steps, lastY + dy * i / steps);
+  }
+  lastX = e.clientX; lastY = e.clientY;
+});
+addEventListener('pointerup', () => spraying = false);
+addEventListener('pointercancel', () => spraying = false);
+
+document.getElementById('clearSpray').addEventListener('click', () => {
+  cx.clearRect(0, 0, innerWidth, innerHeight);
+  toast('Perete curat. Murdărește-l iar.');
+});
+</script>
 </body>
+</html>
