@@ -1,0 +1,16 @@
+
+<!DOCTYPE html>
+<head>
+    <title>Introdicere in CSS</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="CSS/style.CSS/" />
+
+</head>
+<body topmargin="32" leftmargin="124">
+    <h2>Studiem CSS</h2>
+    <p>
+        Bine ați venit la noi !
+       </p>
+
+
+</body>
